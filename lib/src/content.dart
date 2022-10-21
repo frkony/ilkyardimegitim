@@ -16,9 +16,9 @@ class _Content extends State<Content> {
 
   @override
   void initState() {
-    super.initState();
     basliklar = anabasliklar();
     resim = resimler();
+    super.initState();
   }
 
   @override

@@ -4,10 +4,10 @@ class TemelIlkYardim extends StatefulWidget {
   const TemelIlkYardim({super.key});
 
   @override
-  State<TemelIlkYardim> createState() => _TemelIlkYardimState();
+  State<TemelIlkYardim> createState() => _TemelIlkYardim();
 }
 
-class _TemelIlkYardimState extends State<TemelIlkYardim> {
+class _TemelIlkYardim extends State<TemelIlkYardim> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
