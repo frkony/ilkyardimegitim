@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:ilkyardimegitim/modal/acilKisi.dart';
 import 'package:ilkyardimegitim/src/acilNumaraEkle.dart';
 import 'package:ilkyardimegitim/src/content.dart';
-import 'package:ilkyardimegitim/src/staticdata.dart/staticdata.dart';
+import 'package:ilkyardimegitim/src/modal/acilKisi.dart';
+import 'package:ilkyardimegitim/src/modal/acilKisiDatabaseProvider.dart';
+import 'package:ilkyardimegitim/src/jsonData/staticdata.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+
+import 'mapsContent.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -12,33 +15,66 @@ class Home extends StatefulWidget {
   State<Home> createState() => _Home();
 }
 
-const Menu = ["Acil Numarası Ekle"];
-const Menu2 = {"2"};
+const menu = ["Acil Numarası Ekle"];
 
 class _Home extends State<Home> {
+  late AcilKisiDatabaseProvider acilKisiDatabaseProvider;
   List<String>? basliklar;
   List<String>? icerik;
   List<String>? resim;
-  acilKisi kisi = acilKisi();
-  List<acilKisi>? listKisi = [];
-  String? numara;
+  AcilKisi kisi = AcilKisi();
+  List<AcilKisi> acilListesi = [];
 
   @override
   void initState() {
+    super.initState();
+    acilKisiDatabaseProvider = AcilKisiDatabaseProvider();
+    getAcilKisiList();
+    setState(() {});
     basliklar = anabasliklar();
     resim = resimler();
-    kisi.isim = "Acil Ambulans";
-    kisi.numara = "112";
-    listKisi?.add(kisi);
-    kisi = acilKisi();
-    kisi.isim = "Splinter Usta";
-    kisi.numara = "+905379980698";
-    listKisi?.add(kisi);
-    kisi = acilKisi();
-    kisi.isim = "Canmânâ";
-    kisi.numara = "+905415404310";
-    listKisi?.add(kisi);
-    super.initState();
+  }
+
+  /*@override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    changeListener();
+  }*/
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    changeListener();
+  }
+
+  Future<void> changeListener() async {
+    acilListesi = await acilKisiDatabaseProvider.getAcilKisiList();
+    print("acil list : $acilListesi");
+    setState(() {});
+  }
+
+  Future<void> getAcilKisiList() async {
+    acilListesi = await acilKisiDatabaseProvider.getAcilKisiList();
+    setState(() {});
+  }
+
+  Future<void> removeacilKisi(id) async {
+    await acilKisiDatabaseProvider.removeAcilKisi(id).whenComplete(() {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Kayıt Silme Başarılı")));
+    });
+    setState(() {
+      getAcilKisiList();
+    });
+  }
+
+  Future<void> allRemoveacilKisi() async {
+    AcilKisiDatabaseProvider dbProvider = AcilKisiDatabaseProvider();
+    await dbProvider.allRemoveAcilKisi().whenComplete(() => {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Toplu Kayıt Silme Başarılı")))
+        });
+    setState(() {
+      getAcilKisiList();
+    });
   }
 
   @override
@@ -58,33 +94,64 @@ class _Home extends State<Home> {
               child: ListView.separated(
                   itemBuilder: (context, index) {
                     return Container(
-                      height: screenHeight / 20,
+                      height: screenHeight / 14,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Kişi : ${listKisi?.elementAt(index).isim}"),
                               Text(
-                                  "Numara : ${listKisi?.elementAt(index).numara}"),
+                                  "Kişi : ${acilListesi.elementAt(index).isim}"),
+                              Text(
+                                  "Yakınlık : ${acilListesi.elementAt(index).yakinlikDerecesi}"),
+                              Text(
+                                  "Numara : ${acilListesi.elementAt(index).telefon}"),
                             ],
                           ),
                           const Spacer(),
-                          ElevatedButton(
+                          IconButton(
+                              iconSize: 20,
+                              constraints: const BoxConstraints(maxWidth: 30),
+                              onPressed: () {
+                                removeacilKisi(acilListesi.elementAt(index).id);
+                              },
+                              icon:
+                                  const Icon(Icons.highlight_remove_outlined)),
+                          IconButton(
+                              iconSize: 20,
+                              constraints: const BoxConstraints(maxWidth: 30),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AcilNumaraEkle(
+                                          acilListesi.elementAt(index)),
+                                    ));
+                              },
+                              icon: const Icon(Icons.edit)),
+                          IconButton(
+                              iconSize: 20,
+                              constraints: const BoxConstraints(maxWidth: 30),
                               onPressed: () {
                                 launchUrlString(
-                                  "tel:${listKisi!.elementAt(index).numara}",
+                                  "tel:${acilListesi.elementAt(index).telefon}",
                                 );
                               },
-                              child: Text("Ara"))
+                              icon: const Icon(Icons.call)),
                         ],
                       ),
                     );
                   },
                   separatorBuilder: (context, index) => const Divider(),
-                  itemCount: listKisi!.length)),
+                  itemCount: acilListesi.length)),
           actions: [
+            TextButton(
+              onPressed: () {
+                allRemoveacilKisi();
+              },
+              child: const Text("Hepsini Sil"),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text("Kapat"),
@@ -100,8 +167,8 @@ class _Home extends State<Home> {
         actions: [
           PopupMenuButton(onSelected: (value) {
             if (value == 0) {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => AcilNumaraEkle()));
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => AcilNumaraEkle(kisi)));
             }
           }, itemBuilder: (BuildContext context) {
             return const [
@@ -125,7 +192,13 @@ class _Home extends State<Home> {
                         builder: (context) => const Content(),
                       ));
                 },
-                child: Text("Eğitim")),
+                child: const Text("Eğitim")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => Maps()));
+                },
+                child: const Text("Yakındaki Hastaneler")),
             ElevatedButton(
                 onPressed: () {
                   openDialog();

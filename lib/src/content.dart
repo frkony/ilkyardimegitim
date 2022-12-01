@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ilkyardimegitim/src/staticdata.dart/staticdata.dart';
-import 'package:ilkyardimegitim/src/temelilkyard%C4%B1m.dart';
+import 'package:ilkyardimegitim/src/jsonData/staticdata.dart';
+import 'package:ilkyardimegitim/src/temelilkyardim.dart';
 
 class Content extends StatefulWidget {
   const Content({super.key});
@@ -25,7 +25,7 @@ class _Content extends State<Content> {
   Widget build(BuildContext context) {
     var screenInfo = MediaQuery.of(context);
     final screenWidth = screenInfo.size.width;
-    final screenHeight = screenInfo.size.height;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("İlk Yardım Programı"),
@@ -46,7 +46,8 @@ class _Content extends State<Content> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => TemelIlkYardim(),
+                                    builder: (context) =>
+                                        const TemelIlkYardim(),
                                   ));
                             },
                             child: Card(
