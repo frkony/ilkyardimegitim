@@ -92,6 +92,7 @@ class _AcilNumaraEkle extends State<AcilNumaraEkle> {
       if (res == true) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Güncelleme Başarılı")));
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Beklenmedik Bir Hata Oluştu!")));
@@ -173,7 +174,7 @@ class _AcilNumaraEkle extends State<AcilNumaraEkle> {
                     if (updateKisiFlag == true) {
                       updateAcilKisi(isim, telefon, yakinlikDerecesi);
                     } else {
-                      if (isim.isNotEmpty && telefon.isNotEmpty) {
+                      if (isim.runes.isNotEmpty && telefon.runes.isNotEmpty) {
                         addAcilKisi(isim, telefon, yakinlikDerecesi);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

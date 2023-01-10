@@ -1,4 +1,4 @@
-package com.example.ilkyardimegitim
+package com.eofsoftware.ilkyardimegitim
 
 import io.flutter.embedding.android.FlutterActivity
 

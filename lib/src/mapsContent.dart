@@ -11,7 +11,7 @@ class Maps extends StatefulWidget {
 class _MapsState extends State<Maps> {
   late GoogleMapController mapController;
   Set<Marker> _marker = Set();
-  static const LatLng _initialCameraPosition = const LatLng(25.69893, 32.6421);
+  static const LatLng _initialCameraPosition = const LatLng(41.69893, 20.6421);
 
   @override
   void initState() {
@@ -24,6 +24,10 @@ class _MapsState extends State<Maps> {
     mapController.dispose();
   }
 
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,12 +35,14 @@ class _MapsState extends State<Maps> {
         title: const Text("Hastaneler"),
       ),
       body: GoogleMap(
+        onMapCreated: _onMapCreated,
         initialCameraPosition:
             CameraPosition(target: _initialCameraPosition, zoom: 11.5),
-        myLocationEnabled: false,
-        zoomControlsEnabled: false,
-        onMapCreated: (controller) => mapController = controller,
         markers: myMarker(),
+        mapType: MapType.normal,
+        myLocationEnabled: true,
+        compassEnabled: true,
+        myLocationButtonEnabled: true,
       ),
       /*floatingActionButton: FloatingActionButton(onPressed: () {
         mapController.animateCamera(
@@ -51,8 +57,7 @@ class _MapsState extends State<Maps> {
       _marker.add(Marker(
           markerId: MarkerId(_initialCameraPosition.toString()),
           position: _initialCameraPosition,
-          infoWindow:
-              InfoWindow(title: "AĞAĞAĞĞA", snippet: "4 yıldız reyting"),
+          infoWindow: InfoWindow(title: "Ses", snippet: "4 yıldız reyting"),
           icon: BitmapDescriptor.defaultMarker));
     });
     return _marker;

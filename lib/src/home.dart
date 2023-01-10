@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ilkyardimegitim/src/acilNumaraEkle.dart';
 import 'package:ilkyardimegitim/src/content.dart';
@@ -29,26 +31,8 @@ class _Home extends State<Home> {
   void initState() {
     super.initState();
     acilKisiDatabaseProvider = AcilKisiDatabaseProvider();
-    getAcilKisiList();
-    setState(() {});
     basliklar = anabasliklar();
     resim = resimler();
-  }
-
-  /*@override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    changeListener();
-  }*/
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    changeListener();
-  }
-
-  Future<void> changeListener() async {
-    acilListesi = await acilKisiDatabaseProvider.getAcilKisiList();
-    print("acil list : $acilListesi");
-    setState(() {});
   }
 
   Future<void> getAcilKisiList() async {
@@ -61,20 +45,15 @@ class _Home extends State<Home> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Kayıt Silme Başarılı")));
     });
-    setState(() {
-      getAcilKisiList();
-    });
   }
 
   Future<void> allRemoveacilKisi() async {
     AcilKisiDatabaseProvider dbProvider = AcilKisiDatabaseProvider();
     await dbProvider.allRemoveAcilKisi().whenComplete(() => {
           ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Toplu Kayıt Silme Başarılı")))
+              const SnackBar(content: Text("Toplu Kayıt Silme Başarılı"))),
+          Navigator.pop(context)
         });
-    setState(() {
-      getAcilKisiList();
-    });
   }
 
   @override
@@ -84,81 +63,89 @@ class _Home extends State<Home> {
     final screenHeight = screenInfo.size.height;
 
     Future openDialog() async {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Acil Numaralar"),
-          content: Container(
-              width: screenWidth,
-              height: screenHeight / 2.5,
-              child: ListView.separated(
-                  itemBuilder: (context, index) {
-                    return Container(
-                      height: screenHeight / 14,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  "Kişi : ${acilListesi.elementAt(index).isim}"),
-                              Text(
-                                  "Yakınlık : ${acilListesi.elementAt(index).yakinlikDerecesi}"),
-                              Text(
-                                  "Numara : ${acilListesi.elementAt(index).telefon}"),
-                            ],
-                          ),
-                          const Spacer(),
-                          IconButton(
-                              iconSize: 20,
-                              constraints: const BoxConstraints(maxWidth: 30),
-                              onPressed: () {
-                                removeacilKisi(acilListesi.elementAt(index).id);
-                              },
-                              icon:
-                                  const Icon(Icons.highlight_remove_outlined)),
-                          IconButton(
-                              iconSize: 20,
-                              constraints: const BoxConstraints(maxWidth: 30),
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AcilNumaraEkle(
-                                          acilListesi.elementAt(index)),
-                                    ));
-                              },
-                              icon: const Icon(Icons.edit)),
-                          IconButton(
-                              iconSize: 20,
-                              constraints: const BoxConstraints(maxWidth: 30),
-                              onPressed: () {
-                                launchUrlString(
-                                  "tel:${acilListesi.elementAt(index).telefon}",
-                                );
-                              },
-                              icon: const Icon(Icons.call)),
-                        ],
-                      ),
-                    );
-                  },
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemCount: acilListesi.length)),
-          actions: [
-            TextButton(
-              onPressed: () {
-                allRemoveacilKisi();
-              },
-              child: const Text("Hepsini Sil"),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Kapat"),
-            )
-          ],
-        ),
-      );
+      getAcilKisiList().whenComplete(() {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Acil Numaralar"),
+            content: Container(
+                width: screenWidth,
+                height: screenHeight / 2.5,
+                child: ListView.separated(
+                    itemBuilder: (context, index) {
+                      return Container(
+                        height: screenHeight / 14,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    "Kişi : ${acilListesi.elementAt(index).isim}"),
+                                Text(
+                                    "Yakınlık : ${acilListesi.elementAt(index).yakinlikDerecesi}"),
+                                Text(
+                                    "Numara : ${acilListesi.elementAt(index).telefon}"),
+                              ],
+                            ),
+                            const Spacer(),
+                            IconButton(
+                                iconSize: 20,
+                                constraints: const BoxConstraints(maxWidth: 30),
+                                onPressed: () {
+                                  removeacilKisi(
+                                          acilListesi.elementAt(index).id)
+                                      .whenComplete(() {
+                                    setState(() {
+                                      acilListesi;
+                                    });
+                                  });
+                                },
+                                icon: const Icon(
+                                    Icons.highlight_remove_outlined)),
+                            IconButton(
+                                iconSize: 20,
+                                constraints: const BoxConstraints(maxWidth: 30),
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AcilNumaraEkle(
+                                            acilListesi.elementAt(index)),
+                                      ));
+                                },
+                                icon: const Icon(Icons.edit)),
+                            IconButton(
+                                iconSize: 20,
+                                constraints: const BoxConstraints(maxWidth: 30),
+                                onPressed: () {
+                                  launchUrlString(
+                                    "tel:${acilListesi.elementAt(index).telefon}",
+                                  );
+                                },
+                                icon: const Icon(Icons.call)),
+                          ],
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) => const Divider(),
+                    itemCount: acilListesi.length)),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  allRemoveacilKisi();
+                },
+                child: const Text("Hepsini Sil"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Kapat"),
+              )
+            ],
+          ),
+        );
+      });
     }
 
     return Scaffold(
